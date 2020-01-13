@@ -1,4 +1,6 @@
-﻿namespace Model
+﻿using System;
+
+namespace Model
 {
     public class Character
     {
@@ -14,15 +16,15 @@
         }
 
         public float Health { get; private set; }
-        public int Level { get; set; }
+        public int Level { get; private set; }
         public bool IsAlive { get; private set; }
 
-        public void Attack(Character characterStriker, Character characterReceiver, float damage)
+        public void Attack(Character characterReceiver, float damage)
         {
-            if (characterStriker.Equals(characterReceiver))
+            if (this.Equals(characterReceiver))
                 return;
 
-            int diferenceLevel = characterStriker.Level - characterReceiver.Level;
+            int diferenceLevel = CheckDiferenceLevel(this.Level, characterReceiver.Level);
 
             if (diferenceLevel >= 5)
                 damage += 50 % damage;
@@ -32,26 +34,44 @@
 
             if (damage < 0)
                 return;
+            CalculateLifePointsOrIsAlive(characterReceiver, true, damage);
+        }
 
-            characterStriker.Health -= damage;
-            if (characterStriker.Health <= minimumHealth)
+        public void Heal(float lifePoints)
+        {
+
+            if (lifePoints == minimumHealth || this.IsAlive == false || lifePoints < 0)
+                return;
+            CalculateLifePointsOrIsAlive(this, false, lifePoints);
+        }
+
+        private int CheckDiferenceLevel(int level, int characterReceiverLevel)
+        {
+            return level - characterReceiverLevel;
+        }
+
+        private void CalculateLifePointsOrIsAlive(Character character, bool isAttack, float damageOrHeal)
+        {
+            if (isAttack)
             {
-                characterStriker.Health = minimumHealth;
-                characterStriker.IsAlive = false;
+                character.Health -= damageOrHeal;
+                if (character.Health <= minimumHealth)
+                {
+                    character.Health = minimumHealth;
+                    character.IsAlive = false;
+                }
+            }
+            else
+            {
+                character.Health += damageOrHeal;
+                if (character.Health > maxHealth)
+                    character.Health = maxHealth;
             }
         }
 
-        public void Heal(Character character, int identifierHealer, float lifePoints)
+        public void LevelUp()
         {
-            if (character.GetHashCode() != identifierHealer)
-                return;
-
-            if (lifePoints == minimumHealth || character.IsAlive == false)
-                return;
-
-            character.Health += lifePoints;
-            if (character.Health > maxHealth)
-                character.Health = maxHealth;
+            this.Level++;
         }
     }
 }

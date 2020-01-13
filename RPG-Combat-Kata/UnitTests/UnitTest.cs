@@ -22,7 +22,7 @@ namespace UnitTests
             Character character = new Character();
             Character character2 = new Character();
 
-            character.Attack(character2, character, 100);
+            character.Attack(character2, 100);
 
             character2.Health.Should().Be(0);
             character2.IsAlive.Should().BeFalse();
@@ -34,7 +34,7 @@ namespace UnitTests
             Character character = new Character();
             Character character2 = new Character();
 
-            character.Heal(character, character.GetHashCode(), 100);
+            character.Heal(100);
 
             character2.Health.Should().Be(1000);
         }
@@ -48,7 +48,7 @@ namespace UnitTests
             Character character = new Character();
             Character character2 = new Character();
 
-            character.Attack(character2, character, 100);
+            character.Attack(character2, 100);
 
             character.Health.Should().Be(1000);
             character2.Health.Should().Be(900);
@@ -60,8 +60,8 @@ namespace UnitTests
             Character character = new Character();
             Character character2 = new Character();
 
-            character2.Attack(character, character2, 100);
-            character.Heal(character, character.GetHashCode(), 100);
+            character2.Attack(character, 100);
+            character.Heal(100);
 
             character.Health.Should().Be(1000);
         }
@@ -72,10 +72,13 @@ namespace UnitTests
             Character character = new Character();
             Character character2 = new Character();
 
-            //character.Level = 5;
-            //character2.Level = 10;
+            character.LevelUp();
+            character.LevelUp();
+            character.LevelUp();
+            character.LevelUp();
+            character.LevelUp();
 
-            character.Attack(character, character2, 100);
+            character.Attack(character2, 100);
         }
     }
 }
