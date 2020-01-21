@@ -22,8 +22,8 @@ namespace UnitTests
             Character character = new Character(2);
             Character character2 = new Character(2);
 
-            character.Attack(character2, 100);
-
+            character.Attack(character2, 1000);
+            
             character2.Health.Should().Be(0);
             character2.IsAlive.Should().BeFalse();
         }
@@ -34,7 +34,7 @@ namespace UnitTests
             Character character = new Character(2);
             Character character2 = new Character(2);
 
-            character.Heal(100);
+            character.Heal(character2, 100);
 
             character2.Health.Should().Be(1000);
         }

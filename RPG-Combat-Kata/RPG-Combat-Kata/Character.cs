@@ -7,17 +7,19 @@ namespace Model
 {
     public class Character
     {
-        private float maxHealth = 1000;
-        private float minimumHealth = 0;
-        private int levelInitial = 1;
-        public IReadOnlyList<string> FactionsExisting => Faction;
+        private readonly float maxHealth = 1000;
+        private readonly float minimumHealth = 0;
+        private readonly int levelInitial = 1;
+        private readonly List<string> factions = new List<string>();
+
+        public IReadOnlyList<string> Factions => factions;
 
         public Character(int MaxRange = 0)
         {
             Health = maxHealth;
             Level = levelInitial;
             IsAlive = true;
-            Faction = null;
+            factions = null;
             IsARangedOrMeleeCharacter(this, MaxRange);
         }
 
@@ -26,24 +28,17 @@ namespace Model
         public bool IsAlive { get; private set; }
         public string TypeCharacter { get; set; }
         public int Range { get; set; }
-        public List<string> Faction { get; set; }
 
         public void JoinFaction(string faction)
         {
-            foreach (var factionNames in Faction)
-            {
-                if (!factionNames.Equals(faction, System.StringComparison.InvariantCultureIgnoreCase))
-                    Faction.Add(faction);
-            }
+            if (!factions.Contains(faction))
+                factions.Add(faction);
         }
 
         public void LeaveFaction(string faction)
         {
-            foreach (var factionNames in Faction)
-            {
-                if (!factionNames.Equals(faction, System.StringComparison.InvariantCultureIgnoreCase))
-                    Faction.Remove(faction);
-            }
+            if (factions.Contains(faction))
+                factions.Remove(faction);
         }
 
 
@@ -67,7 +62,7 @@ namespace Model
                 return;
 
             bool isInRange = CheckDistanceForAttack(this.Range, characterReceiver.Range);
-            bool checkIsAllie = CheckIsAllie(this.Faction,characterReceiver.Faction);
+            bool checkIsAllie = IsAlly(characterReceiver);
 
             if (!isInRange || checkIsAllie)
                 return;
@@ -84,11 +79,9 @@ namespace Model
             InflictDamage(characterReceiver, damage);
         }
 
-        private bool CheckIsAllie(List<string> characterFactionAttacker, List<string> characterFactionRecivier)
+        private bool IsAlly(Character other)
         {
-            bool isAllie = false;
-            characterFactionAttacker.ForEach(f => isAllie = f.Equals(characterFactionRecivier));
-            return isAllie;
+            return Factions.Any(f => other.Factions.Any(f2 => f.Equals(f2, StringComparison.OrdinalIgnoreCase)));
         }
 
         private bool CheckDistanceForAttack(int rangeCharacterAttacker, int rangeCharactervReceiver)
@@ -115,8 +108,7 @@ namespace Model
             if (lifePoints == minimumHealth || characterHealed.IsAlive == false || lifePoints < 0)
                 return;
 
-            bool checkIsAllie = CheckIsAllie(this.Faction, characterHealed.Faction);
-            if (!checkIsAllie)
+            if (!IsAlly(characterHealed))
                 return;
 
             characterHealed.Health += lifePoints;
@@ -136,7 +128,7 @@ namespace Model
         }
     }
 
-    public class Things : Character
+    public class Thing
     {
 
     }
