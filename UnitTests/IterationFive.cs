@@ -12,7 +12,7 @@ namespace UnitTests
             Character character = new Character("melee");
             Thing thing = new Thing();
 
-            character.DealDamageOnThings(thing, 100);
+            character.DealDamageToThings(thing, 100);
             thing.Health.Should().Be(900);
         }
 
@@ -22,7 +22,7 @@ namespace UnitTests
             Character character = new Character("melee");
             Thing thing = new Thing();
 
-            character.DealDamageOnThings(thing, 1000);
+            character.DealDamageToThings(thing, 1000);
             thing.Health.Should().Be(0);
             thing.IsDestroyed.Should().BeTrue();
         }

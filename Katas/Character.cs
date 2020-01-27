@@ -1,41 +1,49 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace Katas
 {
+    public class CharacterType
+    {
+        private CharacterType(int maxRange)
+        {
+            MaxRange = maxRange;
+        }
+
+        // Nada mencionado sobre a existência de passos e etc. Pois o character tem que entrar no range para poder efetuar o ataque.
+        public int MaxRange { get; private set; }
+
+        public static CharacterType Melee() => new CharacterType(2);
+        public static CharacterType Ranged() => new CharacterType(20);
+    }
+
     public class Character
     {
-        private readonly int maxHealth = 1000;
-        private readonly int minHealth = 0;
-        public static readonly List<string> AllFactions = new List<string>();
+        private const int maxHealth = 1000;
+        private const int minHealth = 0;
+
+        private readonly List<string> factions = new List<string>();
 
         public int Health { get; private set; }
         public int Level { get; private set; }
         public bool IsAlive { get; private set; }
-        public string TypeCharacter { get; set; }
-        public List<string> Factions { get; private set; } = new List<string>();
+        public CharacterType Type { get; set; }
+        public ReadOnlyCollection<string> Factions => factions.AsReadOnly();
 
-        //Nada mencionado sobre a existência de passos e etc. Pois o character tem que entrar no range para poder efetuar o ataque.
-        public int MaxRange { get; set; }
-
-        public Character(string typeCharacter)
+        public Character(CharacterType type)
         {
             Health = maxHealth;
             Level = 1;
             IsAlive = true;
-            SetTypeCharacterAndRange(typeCharacter);
+            SetTypeCharacterAndRange(type);
         }
-
 
         public void JoinFaction(string faction)
         {
             faction = SanitizeFaction(faction);
-            if (!this.Factions.Any(f => f.Contains(faction, StringComparison.InvariantCultureIgnoreCase)))
-                this.Factions.Add(faction);
-            if (!AllFactions.Any(f => f.Contains(faction, StringComparison.InvariantCultureIgnoreCase)))
-                AllFactions.Add(faction);
+            if (!factions.Contains(faction))
+                factions.Add(faction);
         }
 
         private string SanitizeFaction(string faction)
@@ -46,92 +54,73 @@ namespace Katas
         public void LeaveFaction(string faction)
         {
             faction = SanitizeFaction(faction);
-            if (this.Factions.Any(f => f.Contains(faction, StringComparison.InvariantCultureIgnoreCase)))
-                this.Factions.Remove(faction);
-            if (AllFactions.Any(f => f.Contains(faction, StringComparison.InvariantCultureIgnoreCase)))
-                AllFactions.Remove(faction);
+            if (factions.Contains(faction))
+                factions.Remove(faction);
         }
 
-        public bool IsAllie(Character character)
+        public bool IsAlly(Character other)
         {
-            if (character.Factions.Any(f => this.Factions.Contains(f))) return true;
-            return false;
+            return factions.Any(f => other.Factions.Any(f2 => f == f2));
         }
 
-        private void SetTypeCharacterAndRange(string typeCharacter)
+        private void SetTypeCharacterAndRange(CharacterType type)
         {
-            if (typeCharacter.Equals("Ranged", StringComparison.InvariantCultureIgnoreCase))
-            {
-                MaxRange = 20;
-                TypeCharacter = "Ranged";
-            }
-            if (typeCharacter.Equals("Melee", StringComparison.InvariantCultureIgnoreCase))
-            {
-                MaxRange = 2;
-                TypeCharacter = "Melee";
-            }
+            Type = type;
         }
 
-        public void DealDamage(Character characterRecivier, int damage)
+        public void DealDamage(Character target, int damage)
         {
             //Nada comentado sobre a possibilidade de atacar alguém morto
-            if (this.Equals(characterRecivier))
+            if (this.Equals(target))
                 return;
 
-            if (!IsInRange(this, characterRecivier))
+            if (!IsInRange(target))
                 return;
 
-            if (IsAllie(characterRecivier))
+            if (IsAlly(target))
                 return;
 
-            damage = CalculateDamage(this, characterRecivier, damage);
+            damage = CalculateDamage(this, target, damage);
 
-            characterRecivier.Health -= damage;
-            if (characterRecivier.Health <= minHealth)
+            target.Health -= damage;
+            if (target.Health <= minHealth)
             {
-                characterRecivier.Health = minHealth;
-                characterRecivier.IsAlive = false;
+                target.Health = minHealth;
+                target.IsAlive = false;
             }
         }
 
-        public void DealDamageOnThings(Thing thing, int damage)
+        public void DealDamageToThings(Thing thing, int damage)
         {
-            thing.RecivieDamage(damage);
-            if (thing.Health <= minHealth)
-            {
-                thing.SetAreThingIsDestoyed();
-            }
+            thing.ReceiveDamage(damage);
         }
 
-        private bool IsInRange(Character character, Character characterRecivier)
+        private bool IsInRange(Character target)
         {
-            if (character.MaxRange >= characterRecivier.MaxRange)
-                return true;
-            return false;
+            return Type.MaxRange >= target.Type.MaxRange;
         }
 
-        private int CalculateDamage(Character characterAttacker, Character characterRecivier, int damage)
+        private int CalculateDamage(Character attacker, Character target, int damage)
         {
-            int differenceLevel = characterAttacker.Level - characterRecivier.Level;
+            int levelDifference = attacker.Level - target.Level;
             //não faz sentido se os personagens não sobem de nível (LevelUp)
 
-            if (differenceLevel >= 5)
+            if (levelDifference >= 5)
                 damage += (100 * 50) / damage;
-            if (differenceLevel <= -5)
+            if (levelDifference <= -5)
                 damage -= (100 * 50) / damage;
 
             return damage;
         }
 
-        public void Heal(Character characterHealed, int Healing)
+        public void Heal(Character characterHealed, int healingPoints)
         {
             if (!characterHealed.IsAlive)
                 return;
-            if (!IsAllie(characterHealed))
-                if (!this.Equals(characterHealed))
-                    return;
+            if (!IsAlly(characterHealed) && !this.Equals(characterHealed))
+                return;
 
-            characterHealed.Health += Healing;
+            characterHealed.Health += healingPoints;
 
             if (characterHealed.Health > maxHealth)
                 characterHealed.Health = maxHealth;
@@ -155,14 +144,12 @@ namespace Katas
             IsDestroyed = false;
         }
 
-        public void RecivieDamage(int damage)
+        public void ReceiveDamage(int damage)
         {
             this.Health -= damage;
-        }
 
-        public void SetAreThingIsDestoyed()
-        {
-            this.IsDestroyed = true;
+            if (Health <= 0)
+                IsDestroyed = true;
         }
     }
 }

@@ -11,7 +11,7 @@ namespace UnitTests
         {
             Character character = new Character("melee");
 
-            character.TypeCharacter.Should().Be("Melee");
+            character.Type.Should().Be("Melee");
             character.MaxRange.Should().Be(2);
         }
 
@@ -20,7 +20,7 @@ namespace UnitTests
         {
             Character character = new Character("ranged");
 
-            character.TypeCharacter.Should().Be("Ranged");
+            character.Type.Should().Be("Ranged");
             character.MaxRange.Should().Be(20);
         }
 

@@ -31,7 +31,7 @@ namespace UnitTests
 
             character.JoinFaction("BrotherHood");
             character1.JoinFaction("BrotherHood");
-            character.IsAllie(character1).Should().BeTrue();
+            character.IsAlly(character1).Should().BeTrue();
         }
 
         [Fact]
